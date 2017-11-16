@@ -2,7 +2,7 @@
 
 An extremely lightweight libvirt web UI that probably doesn't do what you want.
 
-= Turn on/off/suspend/resume VMs.
+- Turn on/off/suspend/resume VMs.
 - Change the allocated maximum/current memory (VMs with memballoon will use the
   new settings instantly, if supported by the VM and libvirt).
 - Redirect local USB devices (will not work on remote hosts).
@@ -16,7 +16,7 @@ that, but will probably not do much more. Contributions are welcome, though!
 - Python 3.4 and virtualenv3
 - [Flask 0.12](http://flask.pocoo.org/docs/0.12/)
 - [flask-classful 0.14](http://flask-classful.teracy.org/)
-- [python-libvirt]
+- [libvirt-python](https://pypi.python.org/pypi/libvirt-python)
 - All Python pkgs are installed automatically into a virtualenv with `run.sh`.
 
 
