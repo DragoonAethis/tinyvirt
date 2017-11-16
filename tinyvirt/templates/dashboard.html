@@ -1,0 +1,26 @@
+{% extends "master.html" %}
+{% block body %}
+    <div class="col-12 col-md-9" id="content-block">
+        {% include 'flashed.html' %}
+
+        <h1>{{ hostname }}</h1>
+        <p>Running libvirt {{ libvirt_version }}</p>
+
+        <div class="row" id="memory-row">
+            <div class="col-sm-3 col-6">
+                <h4>{{ max_memory|round|int }} MB</h4>
+                <p>Total Memory</p>
+            </div>
+            <div class="col-sm-3 col-6">
+                <h4>{{ free_memory|round(2) }} MB</h4>
+                <p>Free Memory</p>
+            </div>
+        </div>
+
+        <h2>System Info</h2>
+        <pre>{{ sysinfo_xml }}</pre>
+
+        <h2>Capabilities</h2>
+        <pre>{{ capabilities_xml }}</pre>
+    </div>
+{% endblock %}

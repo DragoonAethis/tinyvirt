@@ -1,0 +1,136 @@
+{% extends "master.html" %}
+{% block body %}
+    <div class="col-12 col-md-9" id="content-block">
+        <form action="{{ url_for('create_vm') }}" method="post">
+            <div class="form-row">
+                <div class="col-12 col-xs-12">
+                    <h1>Create a new VM</h1>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-12">
+                    <input name="vm-title" class="form-control form-control-lg" type="text" placeholder="Title">
+                    <small id="vm-name-help" class="form-text text-muted">A readable domain name. May be left empty.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-name" class="form-control form-control-sm" type="text" placeholder="Name (required)" required>
+                    <small id="vm-name-help" class="form-text text-muted">The domain name to use. May contain only latin letters, numbers, dashes and underscores (-, _).</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <select name="vm-type" class="form-control form-control-sm">
+                        <option value="kvm">KVM Virtualization</option>
+                        <option value="qemu">QEMU Emulator</option>
+                    </select>
+                    <small id="vm-type-help" class="form-text text-muted">Some operating systems are incompatible with KVM, but it's significantly faster and very recommended.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-memory-max" class="form-control form-control-sm" type="number" placeholder="Maximum Memory (MB, required)" required>
+                    <small id="vm-memory-max-help" class="form-text text-muted">The maximum amount of memory this VM will see. Make sure not to overprovision your hardware too much.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-memory-current" class="form-control form-control-sm" type="number" placeholder="Current Memory (MB)">
+                    <small id="vm-memory-current-help" class="form-text text-muted">Must be lower than or equal to the maximum memory. If left empty, it'll be set to the allocated maximum.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-vcores" class="form-control form-control-sm" type="number" placeholder="CPU vCores (required)" required>
+                    <small id="vm-vcores-help" class="form-text text-muted">Each vCore spawns a single thread on the host.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <select name="vm-vcpu-type" class="form-control form-control-sm">
+                        <option value="host-passthrough">Host CPU Passthrough</option>
+                        <option value="Skylake-Client">Intel Skylake</option>
+                        <option value="Haswell-noTSX">Intel Haswell (no TSX)</option>
+                        <option value="Haswell">Intel Haswell</option>
+                        <option value="SandyBridge">Intel Sandy Bridge</option>
+                        <option value="Nehalem">Intel Nehalem</option>
+                        <option value="core2duo">Intel Core 2 Duo</option>
+                        <option value="coreduo">Intel Core Duo</option>
+                        <option value="pentium2">Intel Pentium 2</option>
+                        <option value="EPYC">AMD Ryzen/EPYC</option>
+                        <option value="phenom">AMD Phenom</option>
+                        <option value="athlon">AMD Athlon</option>
+                        <option value="qemu32">QEMU CPU (32-bit)</option>
+                        <option value="qemu64">QEMU CPU (64-bit)</option>
+                    </select>
+                    <small id="vm-vcpu-type-help" class="form-text text-muted">The CPU model to present to the guest. The older a given CPU model is, the less features will be exposed to the guest.</small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-12">
+                    <h2>Storage</h2>
+                </div>
+
+                <div class="form-group col-12">
+                    <h4>Installation Source</h4>
+                </div>
+
+                <div class="form-group col-12">
+                    <input name="vm-iso-image" class="form-control" type="text" placeholder="ISO Image">
+                    <small id="vm-iso-image-help" class="form-text text-muted">Path or a HTTP/FTP link to an ISO image containing the operating system to install.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-os-variant" class="form-control form-control-sm" type="text" placeholder="OS Variant">
+                    <small id="vm-os-variant-help" class="form-text text-muted">Run <code>osinfo-query os</code> on the host you're creating the VM on to discover all possible variants understood by virt-install.</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <select name="vm-os-version" class="form-control form-control-sm">
+                        <option value="uefi-q35">UEFI (Q35)</option>
+                        <option value="bios-q35">BIOS (Q35)</option>
+                        <option value="bios-i440fx">BIOS (i440FX)</option>
+                    </select>
+                    <small id="vm-os-version-help" class="form-text text-muted">Firmware and chipset to emulate.</small>
+                </div>
+
+                <div class="form-group col-12">
+                    <h4>Primary Storage Device</h4>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-disk-path" class="form-control form-control-sm" type="text" placeholder="Disk Name (required)" required>
+                    <small id="vm-disk-path-help" class="form-text text-muted">May contain only latin letters, numbers, dashes and underscores (-, _).</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-disk-size" class="form-control form-control-sm" type="number" placeholder="Disk Size (GB, required)" required>
+                    <small id="vm-disk-size-help" class="form-text text-muted">The size of this VM's primary storage device. A sparse file will be created.</small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-12">
+                    <h2>Network</h2>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <select name="vm-network-source-type" class="form-control form-control-sm">
+                        <option value="virtual-network">Virtual Network</option>
+                        <option value="shared-bridge">Shared Bridge</option>
+                        <option value="host-device">Host Device (macvtap)</option>
+                    </select>
+                    <small id="vm-network-source-type-help" class="form-text text-muted">Network source to use. All of them require extra configuration steps on the host first!</small>
+                </div>
+
+                <div class="form-group col-12 col-md-6">
+                    <input name="vm-network-source-name" class="form-control form-control-sm" type="text" placeholder="Source Name (required)" required>
+                    <small id="vm-network-source-name-help" class="form-text text-muted">Virtual network/bridge/host device name to use.</small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-12">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Create this VM &raquo;</button>
+                </div>
+            </div>
+        </form>
+    </div><!-- #content-block -->
+{% endblock %}

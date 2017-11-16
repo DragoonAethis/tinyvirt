@@ -1,0 +1,192 @@
+{% extends "master.html" %}
+{% block body %}
+    {% set state = selected_vm.state() %}
+    {% set _, maxmem, mem, _, _ = selected_vm.info() %}
+    {% set selected_uuid = selected_vm.UUIDString() %}
+
+    <div class="col-12 col-md-9" id="content-block">
+        {% include 'flashed.html' %}
+
+        <div class="row" id="vm-details">
+            <div class="col-12">
+                {% if state[0] == 0 or state[0] > 7 %}
+                    <span class="icon-help-with-circle text-warning"></span> <i>Unknown state</i>
+                {% elif state[0] == 1 %}
+                    <span class="icon-dots-three-horizontal text-success"></span> <i>Running</i>
+                {% elif state[0] == 2 %}
+                    <span class="icon-dots-three-horizontal text-danger"></span> <i>Blocked on resource...</i>
+                {% elif state[0] == 3 %}
+                    <span class="icon-controller-paus text-warning"></span> <i>Paused</i>
+                {% elif state[0] == 4 %}
+                    <span class="icon-dots-three-horizontal text-warning"></span> <i>Shutting down...</i>
+                {% elif state[0] == 5 %}
+                    <span class="icon-dots-three-horizontal"></span> <i>Shutoff</i>
+                {% elif state[0] == 6 %}
+                    <span class="icon-emoji-sad text-danger"></span> <i>Crashed!</i>
+                {% elif state[0] == 7 %}
+                    <span class="icon-controller-paus text-warning"></span> <i>Suspended</i>
+                {% endif %}
+            </div>
+
+            <div class="col-12">
+                <h1>{{ selected_vm|vm_pretty_name }}</h1>
+            </div>
+
+            <div class="col-12" id="vm-controls">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group mr-2" role="group">
+                        {% if state[0] == 1 %}{# Running #}
+                            <a href="{{ url_for('stop_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-controller-stop"></span> Stop</a>
+                            <a href="{{ url_for('suspend_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-controller-paus"></span> Suspend</a>
+                            <a href="{{ url_for('reboot_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-cycle"></span> Reboot</a>
+                            <div class="btn-group mr-2" role="group">
+                                <button id="moreActions" type="button" class="btn btn-sm btn-outline-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</button>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActions">
+                                    <a href="{{ url_for('force_reboot_vm', uuid=selected_uuid) }}" class="dropdown-item"><span class="icon-cycle"></span> Force Reboot</a>
+                                    <a href="{{ url_for('force_off_vm', uuid=selected_uuid) }}" class="dropdown-item"><span class="icon-circle-with-cross"></span> Force Off</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ url_for('destroy_vm', uuid=selected_uuid) }}" class="dropdown-item text-danger"><span class="icon-trash"></span> Destroy</a>
+                                </div>
+                            </div>
+                            {% elif state[0] == 3 or state[0] == 7 %}{# Paused by User | Suspended by guest PM #}
+                            <a href="{{ url_for('resume_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-controller-play"></span> Resume</a>
+                            <a href="{{ url_for('force_off_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-circle-with-cross"></span> Force Off</a>
+                            <a href="{{ url_for('destroy_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-danger"><span class="icon-trash"></span> Destroy</a>
+                            {% elif state[0] == 4 %}{# Shutdown in progress... #}
+                            <a href="{{ url_for('force_off_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-circle-with-cross"></span> Force Off</a>
+                            <a href="{{ url_for('destroy_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-danger"><span class="icon-trash"></span> Destroy</a>
+                            {% elif state[0] == 5 %}{# Shut down #}
+                            <a href="{{ url_for('start_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-primary"><span class="icon-controller-play"></span> Start</a>
+                            <a href="{{ url_for('destroy_vm', uuid=selected_uuid) }}" class="btn btn-sm btn-outline-danger"><span class="icon-trash"></span> Destroy</a>
+                            {% else %}{# 2: Blocked on resource | 6: Crashed | 7+: WTF?! #}
+                            <a href="#">class="btn btn-sm btn-danger"><span class="icon-circle-with-cross"></span> Inspect this domain in virsh/virt-manager!</a>
+                        {% endif %}
+                    </div>
+                </div> <hr>
+            </div><!-- #vm-controls -->
+
+            <div class="col-12 col-xs-12" id="memory">
+                <h2>Memory <button class="btn btn-sm btn-outline-success" href="#" type="button" data-toggle="modal" data-target="#memoryModal">Tweak memory &raquo;</button></h2>
+                <div class="row" id="memory-row">
+                    <div class="col-sm-3 col-6">
+                        <h4>{{ (maxmem / 1024)|round|int }} MB</h4>
+                        <p>Maximum</p>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <h4>{{ (mem / 1024)|round|int }} MB</h4>
+                        <p>Current</p>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <h4>{{ (selected_vm.connect().getInfo()[1])|round(2) }} MB</h4>
+                        <p>Total Memory</p>
+                    </div>
+                    <div class="col-sm-3 col-6">
+                        <h4>{{ (selected_vm.connect().getFreeMemory() / 1048576)|round(2) }} MB</h4>
+                        <p>Free Memory</p>
+                    </div>
+                </div><!-- #memory-row -->
+                <hr>
+            </div><!-- #memory -->
+
+            {% if usb_attach_available() %}
+                <div class="col-12 col-xs-12" id="attached-devices">
+                    <h2>Attached Devices <a class="btn btn-sm btn-outline-success" href="#" role="button" data-toggle="modal" data-target="#usbDeviceModal">Attach a USB device &raquo;</a></h2>
+                    {% set devices = selected_vm|vm_get_attached_usb_devices %}
+                    {% if devices|length > 0 %}
+                        <table class="table table-responsive table-striped table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for device in devices %}
+                                {% set devid = device.vendor + ':' + device.product %}
+                                <tr>
+                                    <td>{{ device.tag }} ({{ devid }})</td>
+                                    <td><a href="{{ url_for('detach_device', uuid=selected_uuid, device=devid) }}" class="btn btn-sm btn-outline-danger">Detach</a></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No devices attached.</p>
+                    {% endif %}
+                </div><!-- #attached-devices -->
+            {% else %}
+                <div class="col-12 col-xs-12" id="attached-devices">
+                    <h2 class="text-muted">Attached Devices</h2>
+                    <p>Attached devices are available only if tinyvirt is running on the same system as the managed libvirt instance, and the hypervisor used is KVM (in system mode).</p>
+                </div>
+            {% endif %}
+
+        </div><!-- #vm-details -->
+    </div><!-- #content-block -->
+
+    <div class="modal" id="memoryModal" tabindex="-1" role="dialog" aria-labelledby="memoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <form action="{{ url_for('edit_memory', uuid=selected_uuid) }}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="memoryModalLabel">Memory Allocation</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="maxMemory">Maximum Memory (MB)</label>
+                            <input name="maxMemory" type="number" class="form-control" id="maxMemory" aria-describedby="maxMemoryHelp" placeholder="Maximum Memory (MB)" value="{{ (maxmem / 1024)|round|int }}">
+                            <small id="maxMemoryHelp" class="form-text text-muted">
+                                The maximum amount of memory to allocate, in megabytes (MB). This <i>shouldn't</i> ever exceed your host's total memory.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentMemory">Current Memory (MB)</label>
+                            <input name="currentMemory" type="number" class="form-control" id="currentMemory" aria-describedby="currentMemoryHelp" placeholder="Current Memory (MB)" value="{{ (mem / 1024)|round|int }}">
+                            <small id="currentMemoryHelp" class="form-text text-muted">
+                                The soft memory limit - memory ballooning will try to keep the usage around this limit, but it's not a hard limit.
+                                This can be left empty, in which case it'll be set to the maximum amount memory.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if usb_attach_available() %}
+        <div class="modal" id="usbDeviceModal" tabindex="-1" role="dialog" aria-labelledby="usbDeviceModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <form action="{{ url_for('attach_device', uuid=selected_uuid) }}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="usbDeviceModalLabel">Attach a USB Device</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <select name="usbDevice" id="usbDevice" class="form-control">
+                                    {% for device in usb_device_list() %}
+                                        <option value="{{ device.id }}">{{ device.tag }} ({{ device.id }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Attach</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

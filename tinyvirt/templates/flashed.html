@@ -1,0 +1,16 @@
+{% set messages = get_flashed_messages(with_categories=True) %}
+{% if (messages|length) > 0 %}
+    <div class="row" id="messages">
+        {% for message in messages %}
+            {% if message[0] == 'info' %}
+                <div class="alert alert-primary" role="alert">{{ message[1] }}</div>&nbsp;
+            {% elif message[0] == 'error' %}
+                <div class="alert alert-danger" role="alert">{{ message[1] }}</div>&nbsp;
+            {% elif message[0] == 'warning' %}
+                <div class="alert alert-warning" role="alert">{{ message[1] }}</div>&nbsp;
+            {% else %}
+                <div class="alert alert-secondary" role="alert">{{ message[1] }}</div>&nbsp;
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

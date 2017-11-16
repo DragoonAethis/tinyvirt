@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Dragoon Aethis">
+    <title>tinyvirt</title>
+
+    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet">
+</head>
+
+<body>
+<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+    <button class="navbar-toggler" type="button" data-toggle="offcanvas" aria-label="Toggle VMs">
+        <span class="icon-add-to-list"></span> VMs
+    </button>
+    <a class="navbar-brand" href="#">tinyvirt</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="icon-unread"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto">
+            <!-- adding the .active class will make this appear as the currently selected item! -->
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#rebootModal">Reboot Host</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main role="main" class="container">
+    <div class="row row-offcanvas row-offcanvas-left" id="page-content">
+        <div class="col-9 col-md-3 sidebar-offcanvas" id="vm-list">
+            <div class="list-group">
+                {% set selected_uuid = ('nope' if selected_vm is undefined else selected_vm.UUIDString()) %}
+                {% for vm in vm_list() %}
+                    <a href="{{ url_for('show_vm', uuid=vm.UUIDString()) }}" class="list-group-item list-group-item-action {{ 'active' if selected_uuid == vm.UUIDString() }}">{{ vm|vm_pretty_name }}</a>
+                {% endfor %}
+                <!--<a href="{{ url_for('create_vm') }}" class="list-group-item list-group-item-action list-group-item-success"><b>+</b> Create a new VM</a>-->
+            </div>
+        </div><!-- #vm-list -->
+
+        {% block body %}{% endblock %}
+    </div><!-- #page-content -->
+
+    <!-- Modal -->
+    <div class="modal" id="rebootModal" tabindex="-1" role="dialog" aria-labelledby="rebootModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rebootModalLabel"><span class="icon-cw"></span> Reboot host</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body"><b>You are about to reboot the machine tinyvirt is running on (not the libvirt host, if it's remote!).</b> All VMs on it will be shut down. Continue?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <a href="{{ url_for('reboot') }}" class="btn btn-danger">Reboot!</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='popper.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
