@@ -11,6 +11,7 @@ server.add_template_global(tinyvirt.utils.vm_list, name='vm_list')
 server.add_template_global(tinyvirt.utils.vm_by_uuid, name='vm_by_uuid')
 server.add_template_global(tinyvirt.utils.usb_device_list, name='usb_device_list')
 server.add_template_global(tinyvirt.utils.usb_attach_available, name='usb_attach_available')
+server.add_template_global(tinyvirt.utils.memory_tweaking_available, name='memory_tweaking_available')
 
 server.add_template_filter(tinyvirt.utils.vm_pretty_name, name='vm_pretty_name')
 server.add_template_filter(tinyvirt.utils.vm_get_attached_usb_devices, name='vm_get_attached_usb_devices')
@@ -61,7 +62,7 @@ def index():
 
 @server.route('/reboot')
 def reboot():
-    subprocess.Popen("sleep 2 && reboot && notify-send Rebooting!", stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
+    subprocess.Popen("notify-send \"Rebooting!\" && sleep 3 && reboot", stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
     flash("Host is now rebooting - refresh this page in a minute or so.")
     return redirect(url_for('index'))
 

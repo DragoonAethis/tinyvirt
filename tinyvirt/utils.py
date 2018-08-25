@@ -23,20 +23,41 @@ def vm_by_uuid(uuid: str) -> libvirt.virDomain:
 
 def vm_pretty_name(domain: libvirt.virDomain) -> str:
     try:
-        title = domain.metadata(libvirt.VIR_DOMAIN_METADATA_TITLE, None, libvirt.VIR_DOMAIN_AFFECT_CURRENT)
-        if type(title) is not str:
-            title = domain.name()
-        return title
+        return domain.metadata(libvirt.VIR_DOMAIN_METADATA_TITLE, None, libvirt.VIR_DOMAIN_AFFECT_CURRENT)
     except:
-        return "[???]"
+        pass
+
+    try:
+        return domain.name()
+    except:
+        pass
+
+    try:
+        return domain.UUIDString()
+    except:
+        pass
+
+    return "[???]"
 
 
 def usb_attach_available() -> bool:
     from tinyvirt import server
+
+    if server.config['DISABLE_USB_ATTACH'] == True:
+        return False
+
     if server.config['LIBVIRT_URL'] == 'qemu:///system':
         return True  # We can only discover local devices...
 
     return False
+
+def memory_tweaking_available() -> bool:
+    from tinyvirt import server
+
+    if server.config['DISABLE_MEMORY_TWEAKING'] == True:
+        return False
+
+    return True
 
 
 def usb_device_list() -> List[dict]:

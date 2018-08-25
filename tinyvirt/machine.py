@@ -210,6 +210,10 @@ class MachineView(FlaskView):
         vm: virDomain = utils.vm_by_uuid(uuid)
         abort(404) if vm is None else None
 
+        if utils.memory_tweaking_available():
+            flash("Memory tweaking is not available in the current configuration.", category='error')
+            return redirect(url_for('show_vm', uuid=uuid))
+
         try:
             maxMemory = int(request.form['maxMemory'])
             if maxMemory <= 0:

@@ -66,7 +66,7 @@
             </div><!-- #vm-controls -->
 
             <div class="col-12 col-xs-12" id="memory">
-                <h2>Memory <button class="btn btn-sm btn-outline-success" href="#" type="button" data-toggle="modal" data-target="#memoryModal">Tweak memory &raquo;</button></h2>
+                <h2>Memory {% if memory_tweaking_available() %}<button class="btn btn-sm btn-outline-success" href="#" type="button" data-toggle="modal" data-target="#memoryModal">Tweak memory &raquo;</button>{% endif %}</h2>
                 <div class="row" id="memory-row">
                     <div class="col-sm-3 col-6">
                         <h4>{{ (maxmem / 1024)|round|int }} MB</h4>
@@ -117,48 +117,50 @@
             {% else %}
                 <div class="col-12 col-xs-12" id="attached-devices">
                     <h2 class="text-muted">Attached Devices</h2>
-                    <p>Attached devices are available only if tinyvirt is running on the same system as the managed libvirt instance, and the hypervisor used is KVM (in system mode).</p>
+                    <p>Attached USB device management is unavailable in the current tinyvirt configuration.</p>
                 </div>
             {% endif %}
 
         </div><!-- #vm-details -->
     </div><!-- #content-block -->
 
-    <div class="modal" id="memoryModal" tabindex="-1" role="dialog" aria-labelledby="memoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <form action="{{ url_for('edit_memory', uuid=selected_uuid) }}" method="post">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="memoryModalLabel">Memory Allocation</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="maxMemory">Maximum Memory (MB)</label>
-                            <input name="maxMemory" type="number" class="form-control" id="maxMemory" aria-describedby="maxMemoryHelp" placeholder="Maximum Memory (MB)" value="{{ (maxmem / 1024)|round|int }}">
-                            <small id="maxMemoryHelp" class="form-text text-muted">
-                                The maximum amount of memory to allocate, in megabytes (MB). This <i>shouldn't</i> ever exceed your host's total memory.
-                            </small>
+    {% if memory_tweaking_available() %}
+        <div class="modal" id="memoryModal" tabindex="-1" role="dialog" aria-labelledby="memoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <form action="{{ url_for('edit_memory', uuid=selected_uuid) }}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="memoryModalLabel">Memory Allocation</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label for="currentMemory">Current Memory (MB)</label>
-                            <input name="currentMemory" type="number" class="form-control" id="currentMemory" aria-describedby="currentMemoryHelp" placeholder="Current Memory (MB)" value="{{ (mem / 1024)|round|int }}">
-                            <small id="currentMemoryHelp" class="form-text text-muted">
-                                The soft memory limit - memory ballooning will try to keep the usage around this limit, but it's not a hard limit.
-                                This can be left empty, in which case it'll be set to the maximum amount memory.
-                            </small>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="maxMemory">Maximum Memory (MB)</label>
+                                <input name="maxMemory" type="number" class="form-control" id="maxMemory" aria-describedby="maxMemoryHelp" placeholder="Maximum Memory (MB)" value="{{ (maxmem / 1024)|round|int }}">
+                                <small id="maxMemoryHelp" class="form-text text-muted">
+                                    The maximum amount of memory to allocate, in megabytes (MB). This <i>shouldn't</i> ever exceed your host's total memory.
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label for="currentMemory">Current Memory (MB)</label>
+                                <input name="currentMemory" type="number" class="form-control" id="currentMemory" aria-describedby="currentMemoryHelp" placeholder="Current Memory (MB)" value="{{ (mem / 1024)|round|int }}">
+                                <small id="currentMemoryHelp" class="form-text text-muted">
+                                    The soft memory limit - memory ballooning will try to keep the usage around this limit, but it's not a hard limit.
+                                    This can be left empty, in which case it'll be set to the maximum amount memory.
+                                </small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
-                    </div>
-                </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 
     {% if usb_attach_available() %}
         <div class="modal" id="usbDeviceModal" tabindex="-1" role="dialog" aria-labelledby="usbDeviceModalLabel" aria-hidden="true">

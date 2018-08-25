@@ -13,8 +13,8 @@ that, but will probably not do much more. Contributions are welcome, though!
 
 ## Dependencies
 
-- Python 3.4 and virtualenv3
-- [Flask 0.12](http://flask.pocoo.org/docs/0.12/)
+- Python 3.6 (w/ virtualenv3) or newer.
+- [Flask 1.0](http://flask.pocoo.org/docs/0.12/)
 - [flask-classful 0.14](http://flask-classful.teracy.org/)
 - [libvirt-python](https://pypi.python.org/pypi/libvirt-python)
 - All Python pkgs are installed automatically into a virtualenv with `run.sh`.
@@ -24,14 +24,13 @@ that, but will probably not do much more. Contributions are welcome, though!
 
 - `git clone` this repo somewhere. `cd` into its root.
 - `mkdir instance && cp tinyvirt/config.py instance/`
-- Edit the `instance/config.py` file to point at your libvirt URI.
-- `./run.sh` and you're done - tinyvirt will start on https://localhost:5000/
+- Edit the `instance/config.py` file as needed.
+- `./run.sh` and you're done - tinyvirt will start on the provided host.
 
 The `run.sh` script will automatically create a virtualenv and install all the
 dependencies required, as specified by `setup.py`. It shouldn't mess with your
-system-wide Python installation.
-
-If you want to run it under a different port, edit `run.sh` (`flask run ...`).
+system-wide Python installation, but if you install all the dependencies and
+run it as a regular WSGI app in Apache or something, it should work just fine.
 
 If you want to run it on boot, you might want to use this unit under systemd:
 
@@ -40,8 +39,8 @@ If you want to run it on boot, you might want to use this unit under systemd:
     
     [Service]
     Type=simple
-    ExecStart=/home/dragoon/Code/tinyvirt/run.sh
-    WorkingDirectory=/home/dragoon/Code/tinyvirt
+    ExecStart=/srv/tinyvirt/run.sh
+    WorkingDirectory=/srv/tinyvirt
     
     [Install]
     WantedBy=multi-user.target
